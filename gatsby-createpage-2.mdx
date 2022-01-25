@@ -1,0 +1,290 @@
+---
+title: 'Gatsby - 동적으로 페이지 만들기(Node createPages API)'
+subtitle: 'createPages API를 사용하여 페이지 라우팅하기.'
+date: '2022-01-26'
+draft: false
+tag:
+  - blog
+  - gatsby
+  - javascript
+  - frontend
+  - headless
+  - react
+  - graphql
+  - html
+---
+
+이 포스트에서는 Gatsby node API의 일부인 `createPages`를 활용하여 페이지를 만들고 라우팅하는 과정을 설명한다.
+
+[Gatsby - 동적으로 페이지 만들기(File system route API)](https://blog.dogmadevs.com/posts/gatsby-createpage) 글과 같이 mdx 형태의 포스트들을 기반으로 동적으로 페이지를 만드는 기능을 구현할 것인데, 다만 이번에는 `createPages` API를 사용하여 구현할 것이다.
+
+> ### 💡 시작하기 전에
+>
+> 만약 File system route API를 사용한 페이지 만들기에 대해 잘 모른다면 [Gatsby - 동적으로 페이지 만들기(File system route API)](https://blog.dogmadevs.com/posts/gatsby-createpage) 를 한번 읽어 보고 오는 것이 좋다.  
+> Node API가 좀더 low-level 이므로, 가능하다면 File system route API를 사용하는 쪽이 코드가 더 깔끔할 것이다.
+
+현재 상황과 구현할 목표는 다음과 같다.
+
+> `src/posts` 디렉토리에 포스트들이 다음과 같이 각각 mdx 문서로 저장되어 있다.
+>
+> `src/posts`  
+> └ hello-world.mdx  
+> └ first-post.mdx  
+> └ another-post.mdx
+>
+> 각각의 파일 이름이 접속 주소가 되도록 만든다.  
+> 예로, `hello-world.mdx` 파일은 `/posts/hello-world` 경로로 접근할 수 있도록 만든다.
+>
+> `gatsby-plugin-mdx` 플러그인을 사용하여 mdx 파일들을 들여온다.
+
+## Gatsby Node API
+
+Gatsby Node API는 페이지를 동적으로 만들거나, GraphQL에 데이터를 추가하거나, 빌드 라이프사이클 중의 이벤트에 리스너를 등록하는 등의 여러 API들을 제공한다.
+
+우리는 여러 가지 API 중에서 `createPages` API를 사용할 것이다.  
+다른 API들에 대해 자세히 알아보려면 [Gatsby Node APIs](https://www.gatsbyjs.com/docs/reference/config-files/gatsby-node/) 를 참조하면 된다.
+
+_Gatsby Node API는 **프로젝트 루트 경로의 `gatsby-node.js` 파일**에 구현되어야 한다._ `gatsby-node.js`은 빌드 중에 단 한 번 실행된다.
+
+## createPages
+
+페이지를 동적으로 생성한다.
+
+`createPages`는 노드와 GraphQL 스키마의 생성, 데이터들의 sourcing이 완료된 후에 실행되기 때문에, 이 파일에서 페이지들을 만들 데이터들을 요청할 수 있다.
+
+`createPages`의 파라미터는 다음과 같다.
+
+- Destructured 오브젝트
+  - `actions`
+    - `createPage`
+    - ... 외 여러 가지
+  - `graphql`
+  - `reporter`
+
+각각의 파라미터가 무엇을 의미하는지를 말로 설명하기보다, 구현된 코드를 보는 것이 이해가 빠를 것이다.
+
+`gatsby-node.js` 파일을 다음과 같이 구현한다. `gatsby-node.js` 파일은 루트 디렉토리에 위치해야 한다.
+
+```javascript
+const path = require(`path`);
+
+exports.createPages = ({ graphql, actions }) => {
+  const { createPage } = actions;
+  // 포스트들을 렌더링할 템플릿 파일을 불러온다.
+  const postTemplate = path.resolve(`src/components/postTemplate.jsx`);
+
+  // mdx 파일들의 id/slug 값을 받아온다.
+  const { data } = await graphql(`
+    query {
+      allMdx {
+        id
+        slug
+      }
+    }
+  `);
+
+  // 받아온 데이터를 기반으로 createPage를 호출한다.
+  data.allMdx.nodes.forEach(node => {
+    createPage({
+      // "/post/hello-world" 와 같은 식으로 렌더링되도록
+      // 접근 경로를 템플릿 리터럴을 사용해 정의하였다.
+      path: `/posts/${node.slug}`,
+      // 템플릿 컴포넌트이다.
+      component: postTemplate,
+      // 컴포넌트에 넘겨줄 파라미터들이다.
+      context: {
+        id: node.id,
+      },
+    });
+  });
+};
+```
+
+템플릿 파일(`src/components/postTemplate.jsx`)은 다음과 같다.
+
+```javascript
+import * as React from 'react';
+import { graphql } from 'gatsby';
+import { MDXRenderer } from 'gatsby-plugin-mdx';
+
+const BlogPost = ({ data }) => {
+  <div>
+    <h1>{data.mdx.frontmatter.title}</h1>
+    <p>{data.mdx.frontmatter.date} 에 작성</p>
+    <MDXRenderer>{data.mdx.body}</MDXRenderer>
+  </div>;
+};
+
+export const query = graphql`
+  query ($id: String) {
+    mdx(id: { eq: $id }) {
+      frontmatter {
+        title
+        date(formatString: "MMMM D, YYYY")
+      }
+      body
+    }
+  }
+`;
+
+export default BlogPost;
+```
+
+페이지 쿼리에서 `id` 값을 받아 mdx 문서를 쿼리하고 그 결과 데이터를 컴포넌트에서 출력하는 것을 확인할 수 있다.
+
+`id` 값은 위의 `gatsby-node.js` 코드에서 `createPage`의 `context` 프라퍼티를 통해 전달되고 있다(밑에서 6번째 줄).
+
+## 참고자료
+
+[Gatsby Node APIs](https://www.gatsbyjs.com/docs/reference/config-files/gatsby-node/)  
+[Gatsby - 동적으로 페이지 만들기(w/ File system route API)](https://blog.dogmadevs.com/posts/gatsby-createpage)  
+이해에 도움이 될까 하여 이 블로그 소스코드의 [gatsby-node.js](https://github.com/centraldogma99/dogma-blog/blob/main/gatsby-node.js)와 포스트 템플릿 [PostTemplate.tsx](https://github.com/centraldogma99/dogma-blog/blob/main/src/components/PostTemplate.tsx)의 코드를 덧붙입니다(링크는 Github 레포지토리).
+
+### gatsby-node.js
+
+```javascript
+const path = require('path');
+
+const initializePostPages = async (createPage, graphql) => {
+  const template = path.resolve('./src/components/PostTemplate.tsx');
+  const { data } = await graphql(`
+    query {
+      allFile(
+        filter: {
+          sourceInstanceName: { eq: "post" }
+          childMdx: { frontmatter: { draft: { eq: false } } }
+        }
+        sort: { fields: childMdx___frontmatter___date, order: DESC }
+      ) {
+        nodes {
+          childMdx {
+            id
+            slug
+          }
+        }
+      }
+    }
+  `);
+
+  data.allFile.nodes.forEach(node => {
+    createPage({
+      path: `/posts/${node.childMdx.slug}`,
+      component: template,
+      context: {
+        id: node.childMdx.id,
+      },
+    });
+  });
+};
+
+const initializeTagPages = async (createPage, graphql) => {
+  const { data } = await graphql(`
+    {
+      allMdx(filter: { frontmatter: { draft: { eq: false } } }) {
+        group(field: frontmatter___tag) {
+          tag: fieldValue
+        }
+      }
+    }
+  `);
+  const tags = data.allMdx.group.reduce((a, b) => {
+    if (a.length) {
+      return [...a, b.tag];
+    } else {
+      return [a.tag, b.tag];
+    }
+  });
+
+  const tagTemplate = path.resolve('./src/components/tagTemplate.tsx');
+
+  tags.forEach(tag =>
+    createPage({
+      path: `/tags/${tag}`,
+      component: tagTemplate,
+      context: {
+        tag: tag,
+      },
+    }),
+  );
+};
+
+const initializeMainPage = async createPage => {
+  const tagTemplate = path.resolve('./src/components/tagTemplate.tsx');
+
+  createPage({
+    path: `/`,
+    component: tagTemplate,
+  });
+};
+
+// Main function
+exports.createPages = ({ graphql, actions }) => {
+  const { createPage } = actions;
+
+  initializePostPages(createPage, graphql);
+  initializeTagPages(createPage, graphql);
+  initializeMainPage(createPage);
+};
+```
+
+### PostTemplate.tsx
+
+```javascript
+import { graphql } from 'gatsby';
+import React, { useEffect } from 'react';
+import Frame from './Frame';
+import { MDXRenderer } from 'gatsby-plugin-mdx';
+import TagBtn from './TagBtn';
+import { Divider } from '@mui/material';
+import hljs from 'highlight.js/lib/common';
+import 'highlight.js/styles/github.css';
+import { TagButtonsContainer } from '../styles/tags';
+import {
+  subtitle,
+  descContainer,
+  articleBodyContainer,
+} from '../styles/PostTemplate';
+
+const PostTemplate = ({ data }) => {
+  const { body, frontmatter } = data.mdx;
+
+  useEffect(() => {
+    hljs.highlightAll();
+  }, []);
+
+  return (
+    <Frame title={frontmatter.title}>
+      <div className={descContainer}>
+        <p className={subtitle}>{frontmatter.subtitle}</p>
+        <p>{frontmatter.date} 작성</p>
+        <TagButtonsContainer>
+          {frontmatter.tag.sort().map(tag => (
+            <TagBtn tag={tag} key={tag} />
+          ))}
+        </TagButtonsContainer>
+      </div>
+      <Divider />
+      <div className={articleBodyContainer}>
+        <MDXRenderer>{body}</MDXRenderer>
+      </div>
+    </Frame>
+  );
+};
+
+export const query = graphql`
+  query ($id: String) {
+    mdx(id: { eq: $id }) {
+      body
+      frontmatter {
+        date(formatString: "YYYY-MM-DD")
+        title
+        subtitle
+        tag
+        draft
+      }
+    }
+  }
+`;
+
+export default PostTemplate;
+```
