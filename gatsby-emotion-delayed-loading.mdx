@@ -38,7 +38,7 @@ tag:
 
 결국에 찾은 해결책은 바로 `@emotion/react`의 사용이었다.
 
-이전에는 `@emotion/css` 를 사용하여, 엘리먼트에 `className` prop을 이용해 스타일을 씌우고 있었다. 하지만 `@emotion/css`는 플랫폼 외적으로 동작하도록 설계된(Framework Agnostic) 패키지였기 떄문에, Gatsby와 같은 서버 사이드 렌더링 프레임워크에서는 의도한 대로 동작하지 않았던 것이고 따라서 스타일과 HTML이 별도로 클라이언트에 도착하여, 딜레이가 있었던 것이다.
+이전에는 `@emotion/css` 를 사용하여, 엘리먼트에 `className` prop을 이용해 스타일을 씌우고 있었다. 하지만 `@emotion/css`는 플랫폼 외적으로 동작하도록 설계된(Framework Agnostic) 패키지였기 때문에, Gatsby와 같은 서버 사이드 렌더링 프레임워크에서는 의도한 대로 동작하지 않았던 것이고 따라서 스타일과 HTML이 별도로 클라이언트에 도착하여, 딜레이가 있었던 것이다.
 
 `@emotion/react`는 React 프레임워크와 좀더 잘 맞물리도록 만들어진 패키지이고, 리액트를 사용할 경우 이 패키지를 사용할 것을 emotion은 권장하고 있다.
 
