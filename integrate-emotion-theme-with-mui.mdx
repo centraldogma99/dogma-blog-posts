@@ -1,0 +1,26 @@
+---
+title: 'Gatsby 프로젝트 만들기'
+subtitle: 'Gatsby 프로젝트 생성 및 실행'
+date: '2022-01-22'
+draft: true
+tag:
+  - materialui
+  - javascript
+  - frontend
+  - react
+  - emotion
+  - theme
+---
+
+```text
+If you are already using a custom theme with styled-components or emotion, it might not be compatible with MUI's theme specification. If it's not compatible, you need to render MUI's ThemeProvider first. This will ensure the theme structures are isolated. This is ideal for the progressive adoption of MUI's components in the codebase.
+```
+
+```javascript
+<ThemeProviderMui theme={createTheme()}>
+  <ThemeProvider theme={themes[current]}>{children}</ThemeProvider>
+</ThemeProviderMui>
+```
+
+## 참고자료
+[MUI Style Library Interoperatability - themes](https://mui.com/guides/interoperability/#theme)
