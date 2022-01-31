@@ -1,6 +1,6 @@
 ---
 title: 'Emotion theme과 MUI(Material UI)를 함께 사용 시 오류 해결법'
-subtitle: ''
+subtitle: '-'
 date: '2022-01-31'
 draft: false
 tag:
@@ -60,7 +60,7 @@ import { ThemeProvider } from '@emotion/react';
 
 즉, 정의한 커스텀 테마가 MUI 컴포넌트들에까지 파라미터로 입력되는 것이 문제이므로, MUI의 `<ThemeProvider>`를 추가함으로써 MUI 컴포넌트들을 위한 테마를 별도로 제공하면 해결할 수 있다는 것이다.
 
-따라서 코드를 다음과 같이 변경했다([src/Components/ThemeContextProvider.tsx](https://github.com/centraldogma99/dogma-blog/blob/main/src/components/ThemeContextProvider.tsx)).
+따라서 코드를 다음과 같이 변경했다(![src/Components/ThemeContextProvider.tsx](https://github.com/centraldogma99/dogma-blog/blob/main/src/components/ThemeContextProvider.tsx)).
 ```javascript
 import {
   ThemeProvider as ThemeProviderMui,
@@ -80,5 +80,5 @@ import { ThemeProvider } from '@emotion/react'
 또한 신경쓸 점은 `MUI의 ThemeProvider를 먼저 렌더링해야 한다`는 것이다. 위 코드에서도 확인할 수 있듯이, emotion의 ThemeProvider보다 바깥에 MUI의 ThemeProvider가 정의되어 있다.
 
 ## 참고자료
-[MUI Style Library Interoperatability - themes](https://mui.com/guides/interoperability/#theme)
+[MUI Style Library Interoperatability - themes](https://mui.com/guides/interoperability/#theme)  
 [MUI theme API - createTheme](https://mui.com/customization/theming/#createtheme-options-args-theme)
