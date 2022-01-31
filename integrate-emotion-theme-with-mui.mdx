@@ -47,6 +47,7 @@ import { ThemeProvider } from '@emotion/react';
 // ...
 ```
 이렇게 구현할 경우 다음과 같은 오류가 발생했다.
+<img width="709" alt="스크린샷 2022-01-31 오후 4 35 31" src="https://user-images.githubusercontent.com/53252434/151760505-9cd5628c-1363-422a-af1d-ed9414b1352c.png">
 
 오류 내용을 보면, Material UI 컴포넌트에서 `theme`을 파라미터로 받아서 스타일을 적용하고 있는데, 그 컴포넌트 내에서 사용되는 몇몇 프라퍼티가 없다는 뜻이다. 그도 그럴 것이, 사용 중인 theme은 위와 같이 변수 이름들도 직접 짓고, 구조도 직접 만든 커스텀 테마이기 때문에 `theme.transitions.create` 같은 것이 있을 리 만무하다.
 
@@ -82,3 +83,5 @@ import { ThemeProvider } from '@emotion/react'
 ## 참고자료
 [MUI Style Library Interoperatability - themes](https://mui.com/guides/interoperability/#theme)  
 [MUI theme API - createTheme](https://mui.com/customization/theming/#createtheme-options-args-theme)
+
+
