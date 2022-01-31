@@ -1,8 +1,8 @@
 ---
-title: 'Gatsby 프로젝트 만들기'
-subtitle: 'Gatsby 프로젝트 생성 및 실행'
-date: '2022-01-22'
-draft: true
+title: 'Emotion theme과 MUI(Material UI)를 함께 사용 시 오류 해결법'
+subtitle: ''
+date: '2022-01-31'
+draft: false
 tag:
   - materialui
   - javascript
@@ -11,16 +11,74 @@ tag:
   - emotion
   - theme
 ---
+## 오류 상황
+필자는 emotion 라이브러리를 사용하여 블로그의 테마 기능을 구현해 놓은 상태였다. 다음과 같은 형태로 theme을 구현하고, 컴포넌트들에서 참조하는 방식이었다.
 
-```text
-If you are already using a custom theme with styled-components or emotion, it might not be compatible with MUI's theme specification. If it's not compatible, you need to render MUI's ThemeProvider first. This will ensure the theme structures are isolated. This is ideal for the progressive adoption of MUI's components in the codebase.
-```
-
+아래 예시는 본 블로그의 [src/styles/themes.ts](https://github.com/centraldogma99/dogma-blog/blob/main/src/styles/themes.ts)의 일부이다.
 ```javascript
-<ThemeProviderMui theme={createTheme()}>
-  <ThemeProvider theme={themes[current]}>{children}</ThemeProvider>
-</ThemeProviderMui>
+const themes: Theme[] = [
+  {
+    name: 'blue',
+    colors: {
+      primary: 'dodgerblue',
+      secondary: 'white',
+      globalBackground: 'white',
+      title: 'white',
+      postListBackground: '#eee',
+      postList: 'black',
+      postListDate: '#222',
+      text: 'black',
+      codeText: 'white',
+      blockquote: '#eee',
+      preCode: '#333',
+    },
+  },
+  // .....
+];
 ```
+그런 다음에 emotion의 `<ThemeProvider>`을 사용하여, 최상위 컴포넌트를 다음과 같이 렌더링했다.
+```javascript
+import { ThemeProvider } from '@emotion/react';
+// current는 themes 배열에서 현재 테마를 가리키는 인덱스 변수이다.
+// ...
+  <ThemeProvider theme={themes[current]}>
+    {children}
+  </ThemeProvider>
+// ...
+```
+이렇게 구현할 경우 다음과 같은 오류가 발생했다.
+
+오류 내용을 보면, Material UI 컴포넌트에서 `theme`을 파라미터로 받아서 스타일을 적용하고 있는데, 그 컴포넌트 내에서 사용되는 몇몇 프라퍼티가 없다는 뜻이다. 그도 그럴 것이, 사용 중인 theme은 위와 같이 변수 이름들도 직접 짓고, 구조도 직접 만든 커스텀 테마이기 때문에 `theme.transitions.create` 같은 것이 있을 리 만무하다.
+
+검색을 통해 찾은 해결책은 다음과 같다.
+
+## 해결법
+
+> If you are already using a custom theme with styled-components or emotion, it might not be compatible with MUI's theme specification. If it's not compatible, you need to render MUI's ThemeProvider first. This will ensure the theme structures are isolated.
+> ### 번역
+> 만약 emotion이나 styled-components로 만든 커스텀 테마를 사용하고 있다면, 그것은 MUI의 테마 스펙과 호환되지 않을 수 있습니다. 만약 호환되지 않는다면, MUI의 ThemeProvider를 먼저 렌더링해야 합니다. 이것은 테마 구조가 서로 분리되어 있도록 할 것입니다.
+
+즉, 정의한 커스텀 테마가 MUI 컴포넌트들에까지 파라미터로 입력되는 것이 문제이므로, MUI의 `<ThemeProvider>`를 추가함으로써 MUI 컴포넌트들을 위한 테마를 별도로 제공하면 해결할 수 있다는 것이다.
+
+따라서 코드를 다음과 같이 변경했다([src/Components/ThemeContextProvider.tsx](https://github.com/centraldogma99/dogma-blog/blob/main/src/components/ThemeContextProvider.tsx)).
+```javascript
+import {
+  ThemeProvider as ThemeProviderMui,
+  createTheme,
+} from '@mui/material/styles';
+import { ThemeProvider } from '@emotion/react'
+// .....
+  <ThemeProviderMui theme={createTheme()}>
+    <ThemeProvider theme={themes[current]}>
+      {children}
+    </ThemeProvider>
+  </ThemeProviderMui>
+// .....
+```
+`createTheme()`은 MUI 라이브러리에서 제공하는 함수로, 인자를 따로 넘기지 않으면 기본 테마를 반환한다. MUI 컴포넌트들이 작동하기 위한 최소한의 테마만 만들어주면 되기 때문에 별도의 수정 없이 기본 테마를 사용했다. `createTheme()`의 자세한 사용법은 [여기](https://mui.com/customization/theming/#createtheme-options-args-theme)를 참고.
+
+또한 신경쓸 점은 `MUI의 ThemeProvider를 먼저 렌더링해야 한다`는 것이다. 위 코드에서도 확인할 수 있듯이, emotion의 ThemeProvider보다 바깥에 MUI의 ThemeProvider가 정의되어 있다.
 
 ## 참고자료
 [MUI Style Library Interoperatability - themes](https://mui.com/guides/interoperability/#theme)
+[MUI theme API - createTheme](https://mui.com/customization/theming/#createtheme-options-args-theme)
