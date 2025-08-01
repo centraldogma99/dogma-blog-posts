@@ -3,7 +3,7 @@ title: React Router loader와 Tanstack Query를 활용한 사용자 상태에 �
 subtitle: 
 date: 2025-08-01
 draft: true
-tags:
+tag:
   - tanstack-query
   - react-router
 ---
