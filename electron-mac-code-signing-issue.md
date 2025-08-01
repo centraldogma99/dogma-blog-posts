@@ -1,5 +1,5 @@
 ---
-title: 'Electron Mac 앱 빌드 시 "손상된 파일" 오류 해결하기'
+title: 'Electron Mac 앱 빌드 시 손상된 파일 오류 해결하기'
 subtitle: 'ad-hoc 코드 서명'
 date: 2025-08-01
 draft: false
@@ -16,7 +16,8 @@ Electron으로 Mac OS 앱을 빌드한 후, 다른 사용자에게 배포했을 
 
 ## 원인
 
-이 문제는 **코드 서명(Code Signing)**이 없어서 발생하는 것으로, macOS의 Gatekeeper 보안 기능이 서명되지 않은 앱을 차단하기 때문입니다.
+이 문제는 **코드 서명(Code Signing)** 이 없어서 발생하는 것으로, macOS의 Gatekeeper 보안 기능이 서명되지 않은 앱을 차단하기 때문입니다.
+
 
 ## 해결 방법
 
