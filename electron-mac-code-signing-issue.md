@@ -1,6 +1,6 @@
 ---
-title: 'Electron Mac 앱 빌드 시 손상된 파일 오류 해결하기'
-subtitle: 'ad-hoc 코드 서명'
+title: Electron Mac 앱 빌드 시 "손상된 파일" 오류 해결하기
+subtitle: ad-hoc 코드 서명
 date: 2025-08-01
 draft: false
 tag:
