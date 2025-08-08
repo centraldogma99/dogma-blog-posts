@@ -2,7 +2,7 @@
 title: React Router의 loader로 사용자 상태에 따른 리다이렉트 구현하기
 subtitle: React Router와 Tanstack Query를 활용하여, 훌륭한 UX와 DX를 가진 사용자 상태 리다이렉트를 구현하는 방법입니다.
 date: 2025-08-01
-draft: false
+draft: true
 tag:
   - tanstack-query
   - react-router
