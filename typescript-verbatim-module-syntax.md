@@ -8,7 +8,19 @@ tag:
   - vite
 ---
 
-TypeScript 프로젝트를 진행하다 보면 `tsconfig.json`에서 낯선 옵션들을 마주치곤 합니다. 그중에서도 `verbatimModuleSyntax`는 이름부터 생소하죠. "import/export 구문을 있는 그대로 유지한다"는 설명을 읽어도 왜 필요한지 와닿지 않습니다.
+## TL;DR
+
+- Typescript는 타입으로만 사용되는 import 구문을 컴파일 과정에서 "똑똑하게" 알아서 제거합니다
+- `verbatimModuleSyntax: true`는 TypeScript가 import 구문을 "똑똑하게" 최적화하지 않고 `import type` 구문을 통해 명시된 구문만 제거합니다
+- 타입 import는 반드시 `import type`으로 명시해야 하며, 이를 통해 번들러가 더 효율적으로 tree-shaking을 수행할 수 있습니다
+- Vite, esbuild 같은 현대적인 빌드 도구를 사용한다면 이 옵션을 켜는 것이 좋습니다
+- 개발 중에는 ESLint 규칙처럼 작동해 타입 import 시 `import type` 구문을 사용하지 않으면 에러를 발생시킵니다
+
+---
+
+TypeScript 프로젝트를 진행하다 보면 `tsconfig.json`에서 낯선 옵션들을 마주치곤 합니다. 그중에서도 `verbatimModuleSyntax`는 이름부터 생소하죠. 
+
+여기서 'verbatim'은 "한 글자도 바꾸지 않고 있는 그대로"라는 뜻의 영어 단어입니다. 즉, `verbatimModuleSyntax`는 직역하면 "모듈 구문을 있는 그대로 유지한다"는 의미인데, 이 설명만으로는 왜 필요한지 와닿지 않습니다.
 
 TypeScript가 알아서 최적화해 주는 게 더 좋은 거 아닌가? 싶었지만, 좀 더 알아보니 왜 이 옵션이 필요한지 알 수 있었습니다.
 
@@ -29,7 +41,7 @@ import { useState } from 'react';  // FC는 자동으로 제거됨
 
 ### 번들러와의 충돌
 
-Vite, esbuild, SWC 같은 현대적인 번들러들은 TypeScript 파일을 직접 처리합니다. 이들은 자체적인 최적화 전략을 가지고 있는데, TypeScript가 먼저 코드를 변형해버리면 번들러의 트리셰이킹이 제대로 작동하지 않을 수 있습니다.
+Vite, esbuild, SWC 같은 현대적인 번들러들은 TypeScript 파일을 직접 처리합니다. 이들은 자체적인 최적화 전략을 가지고 있는데, TypeScript가 먼저 코드를 변형해버리면 번들러의 tree-shaking이 제대로 작동하지 않을 수 있습니다.
 
 ```typescript
 // 번들러 입장에서 보면
@@ -65,30 +77,35 @@ import { api, validateUser } from './utils';    // 런타임 값
 import { User } from './types';  // 타입인데 type 키워드 없음
 ```
 
-이는 마치 타입스크립트의 엄격 모드처럼, 처음엔 번거롭지만 장기적으로 더 안전한 코드를 만들어줍니다.
+이는 마치 타입스크립트의 strict 모드처럼, 처음엔 번거롭지만 장기적으로 더 안전한 코드를 만들어줍니다.
 
+## 실제 프로젝트에서의 활용
 
-## 개발 환경에서는 코딩 컨벤션 강제 도구
+### 코드 품질 관리 도구로서의 역할
 
-typescript 컴파일과 관rP없는 개발 환경에서는 `verbatimModuleSyntax`는 **코드 품질 관리 도구**에 가깝습니다. ESLint 규칙처럼 작동하지만, TypeScript 컴파일러 레벨에서 강제한다는 점이 다릅니다.
+ESLint의 `@typescript-eslint/consistent-type-imports` 규칙을 사용해 타입 import를 관리할 수 있습니다. `verbatimModuleSyntax`는 이와 비슷한 역할을 하지만, TypeScript 컴파일러 레벨에서 강제한다는 점이 다릅니다.
 
 ```typescript
 // ESLint 규칙
 "@typescript-eslint/consistent-type-imports": "error"
 
 // tsconfig.json
-"verbatimModuleSyntax": true
-
-// 둘 다 같은 결과를 만듦
-import type { User } from './types';  // ✅
-import { User } from './types';       // ❌ 에러!
+{
+  "compilerOptions": {
+    "verbatimModuleSyntax": true
+  }
+}
 ```
 
-## 마무리
+### 실제 사용 예시: React 컴포넌트 작성
 
-`verbatimModuleSyntax`는 TypeScript가 코드를 "똑똑하게" 변형하는 것을 막고, 개발자가 명시적으로 의도를 표현하도록 강제합니다. 처음엔 `type` 키워드를 일일이 붙이는 게 번거로울 수 있지만, 이는 장기적으로 다음과 같은 이점을 가져다줍니다.
+```typescript
+// Before: 암묵적인 import
+import { Component, ReactNode } from 'react';
+import { UserProfile } from './types';
 
-- **예측 가능한 빌드 결과**: 작성한 그대로 출력되므로 디버깅이 쉬움
-- **번들러와의 완벽한 협업**: 각 도구가 자신의 역할에 집중
-- **명확한 코드 의도**: 타입과 값의 구분이 한눈에 보임
+// After: 명시적인 import (verbatimModuleSyntax: true)
+import { Component, type ReactNode } from 'react';
+import type { UserProfile } from './types';
+```
 
