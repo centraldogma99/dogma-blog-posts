@@ -209,4 +209,4 @@ import Button from '#components/Button';
 import Button from '#components/Button.tsx';
 ```
 
-이는 bundler 모드가 Node.js의 ESM 해석 규칙을 더 엄격하게 따르기 때문입니다. 만약 확장자를 생략하고 싶다면 `"moduleResolution": "node"` 또는 `"node16"`을 사용해야 하지만, 최신 번들러 기능과의 호환성을 위해서는 bundler 모드와 확장자 명시를 권장합니다.
+확장자를 왜 넣어야 하는지에 대한 이유는 TypeScript 레포의 [이슈](https://github.com/microsoft/TypeScript/issues/60003#issuecomment-2364130579)를 참조하세요.
