@@ -19,7 +19,7 @@ Subpath import는 Node.js가 제공하는 모듈 해석 기능으로, `package.j
 
 ```javascript
 // 기존 상대 경로
-import Button from '../../../components/Button';
+import Button from '../../../components/Button.tsx';
 
 // Subpath import 사용
 import Button from '#components/Button.tsx';
@@ -48,7 +48,10 @@ import Button from '#components/Button.tsx';
 ```json
 {
   "compilerOptions": {
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    // 필수는 아님, 하지만 설정하지 않을 경우
+    // 파일 확장자를 'ts', 'tsx'가 아닌 'js', 'jsx'로 사용해야 함
+    "allowImportingTsExtensions": true 
   }
 }
 ```
@@ -119,7 +122,7 @@ Webpack 5, Vite, Rollup, esbuild 등 주요 번들러들은 `package.json`의 `i
 
 ### 2. 실행 환경별 조건부 모듈 해석
 
-Subpath import의 강력한 기능 중 하나는 **조건부 내보내기(Conditional Exports)**입니다. 실행 환경에 따라 다른 모듈을 로드할 수 있습니다.
+Subpath import의 정말 강력한 기능 중 하나입니다. 바로 **실행 환경에 따라 다른 모듈을 로드할 수 있다**는 것입니다.
 
 #### 환경별 분기 설정
 
@@ -132,9 +135,9 @@ Subpath import의 강력한 기능 중 하나는 **조건부 내보내기(Condit
       "default": "./src/config/default.ts"
     },
     "#api/*": {
-      "browser": "./src/api/client/*.ts",
-      "node": "./src/api/server/*.ts",
-      "default": "./src/api/universal/*.ts"
+      "browser": "./src/api/client/*",
+      "node": "./src/api/server/*",
+      "default": "./src/api/universal/*"
     },
     "#polyfills": {
       "node": "./src/polyfills/node.ts",
@@ -170,6 +173,7 @@ import '#polyfills';
 }
 ```
 
+##### 개발 환경과 운영 환경에서 동작 분기
 ```javascript
 // 개발 환경: 상세한 로깅
 // 프로덕션: 최소한의 로깅만
@@ -188,44 +192,6 @@ Subpath import는 **Node.js 12.19.0**부터 지원되는 공식 기능입니다.
 
 또한 Node.js 팀이 직접 유지보수하는 기능이므로 장기적인 안정성이 보장됩니다. ECMAScript 모듈 시스템의 발전과 함께 지속적으로 개선되고 있으며, 새로운 JavaScript 표준이 등장하더라도 하위 호환성을 유지하면서 발전할 것입니다. 반면 서드파티 도구나 특정 번들러의 독자적인 기능은 언제든 deprecated되거나 breaking change가 발생할 수 있습니다.
 
-## 실제 프로젝트 적용 예시
-
-React + Vite 프로젝트에서의 완전한 설정 예시:
-
-```json
-// package.json
-{
-  "name": "my-react-app",
-  "type": "module",
-  "imports": {
-    "#components/*": "./src/components/*",
-    "#pages/*": "./src/pages/*",
-    "#hooks/*": "./src/hooks/*",
-    "#utils/*": "./src/utils/*",
-    "#styles/*": "./src/styles/*",
-    "#assets/*": "./src/assets/*",
-    "#api": {
-      "development": "./src/api/mock.ts",
-      "production": "./src/api/real.ts"
-    }
-  }
-}
-```
-
-```typescript
-// src/pages/Dashboard.tsx
-import { useState } from 'react';
-import Header from '#components/Header.tsx';
-import { useAuth } from '#hooks/auth.ts';
-import { formatDate } from '#utils/date.ts';
-import styles from '#styles/dashboard.css';
-import api from '#api';
-
-export default function Dashboard() {
-  const { user } = useAuth();
-  // ...
-}
-```
 
 ## 주의사항
 
