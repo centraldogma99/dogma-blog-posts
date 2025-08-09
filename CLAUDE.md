@@ -8,8 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 디렉토리 구조
 
-루트 디렉토리에 블로그 포스트 마크다운 파일들이 위치합니다:
-- `*.md` - 블로그 포스트 파일들
+- `/posts/` - 모든 블로그 포스트 마크다운 파일들이 위치하는 디렉토리
+- `CLAUDE.md` - 이 파일
 
 ## 마크다운 포스트 구조
 
@@ -38,3 +38,9 @@ tag:
 - **React & 웹 개발**: React Router, Tanstack Query 등 웹 프레임워크 관련
 - **AI/LLM**: Gemini, 프롬프트 엔지니어링 등 AI 활용 사례
 - **Desktop 앱**: Electron 등 데스크톱 애플리케이션 개발
+- **TypeScript & 번들러**: TypeScript 설정, 프론트엔드 번들러 관련
+
+## 포스트 파일명 규칙
+
+포스트 파일명은 kebab-case로 작성하며, 내용을 명확히 알 수 있도록 구체적으로 작성합니다.
+예: `react-router-loader-tanstack-query-redirect-by-user-status.md`
