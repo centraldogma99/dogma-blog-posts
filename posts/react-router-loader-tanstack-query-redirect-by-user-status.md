@@ -240,35 +240,15 @@ const Page = () => {
 
 ### 4. 캐시 무효화 전략 개선
 
-새로운 방식으로 전환하면서 한 가지 문제가 생겼습니다. 기존에는 사용자 상태를 항상 구독하고 있었기 때문에, mutation 후 `await invalidateQueries()`를 호출하면 refetch가 완료될 때까지 기다릴 수 있었습니다. 이를 통해 로딩 상태를 표시하고, 데이터가 갱신된 후 페이지를 이동시킬 수 있었죠. 처음 보여드린 코드에서 `isPending`을 로딩 여부 값으로 사용할 수 있었던 것도 그 때문입니다.
+loader 방식에서는 사용자 상태를 구독하지 않기 때문에 `invalidateQueries()`를 호출해도 refetch가 일어나지 않습니다. 이는 TanStack Query의 동작 원리 때문입니다:
+- 활성 구독자가 있을 때만 refetch 수행
+- 구독자가 없으면 캐시만 stale로 표시
 
-하지만 loader 방식에서는 더 이상 사용자 상태를 상시 구독하지 않습니다. 따라서 `invalidateQueries()`를 호출해도 refetch가 일어나지 않고, `await`이 의미가 없어집니다. 즉, `invalidateQueries`를 호출하는 쪽에서 새로운 user status의 fetch가 완료되었는지 어떤지를 알 수가 없다는 것입니다.
+이 특성을 활용하여 **mutation 커스텀 훅에 invalidate를 내재화**했습니다:
 
-이를 해결하기 위해 Tanstack Query의 `invalidateQueries` 동작 원리를 활용했습니다. `invalidateQueries`는 비동기 함수이지만, 실제로는 다음과 같이 동작합니다: ([참조1](https://tanstack.com/query/v5/docs/reference/QueryClient#queryclientinvalidatequeries)) ([참조2](https://tkdodo.eu/blog/mastering-mutations-in-react-query#awaited-promises))
-1. **즉시** 해당 쿼리를 stale 상태로 표시
-2. **비동기로** 활성 구독자가 있을 경우 refetch 수행
-
-이 특성을 활용하여, `invalidateQueries` 호출 시 `await` 없이 호출함으로써, mutation 후에 캐시를 즉시 stale로 만들기만 하고 새로운 user status의 fetch는 다음 라우트에서 진행하도록 하였습니다.
-
-또한 중요한 개선점은 **mutation 커스텀 훅에 invalidate를 내재화**시킨 것입니다. 기존에는 각 컴포넌트에서 mutation 후 수동으로 `invalidateQueries()`를 호출해야 했고, 이를 누락하면 stale한 데이터로 인한 버그가 발생할 수 있었습니다. 하지만 새로운 방식에서는 개발자의 실수로 mutation 후에 무효화를 놓치는 문제는 발생하지 않게 됩니다.
-
-단순히 무효화를 놓치는 실수를 줄이는 것 뿐만 아니라, 코드를 더 직관적으로 만드는 효과와, 약간의 성능 향상 효과도 있습니다.
-
-이번 변경은 user status를 `useQuery`를 통해 구독하던 것을 제거하고 대신 `queryClient`를 통해 조회하도록 하는 것이므로, `invalidateQueries()`를 호출할 시점에 user status 쿼리는 inactive 상태일 가능성이 높습니다(구독하지 않으므로).
-
-따라서, `await`을 하더라도 refetch가 일어나지 않을 가능성이 높습니다.
-
-이러한 상황에서, 커스텀 훅에 내재화하지 않는다면 `invalidateQueries()`를 직접 호출해야 할 텐데, 이 때 개발자가 `await`을 붙일 수도, 붙이지 않을 수도 있는 가능성을 열어주게 됩니다.
-
-여기서 개발자가 `await`을 붙이겠다는 선택을 한다면, `await invalidateQueries()`와 같은 코드가 만들어지는데, 이는 마치 refetch가 일어나고 그것을 기다릴 것 같다는 잘못된 인상을 줍니다.
-
-설령 refetch가 일어난다고 하더라도, 새로운 user status가 현재 라우트에서 필요하지 않으므로 그것을 기다릴 필요가 없습니다.
-
-즉, 캐시 무효화를 커스텀 훅에 내재화함으로써, 비-직관적이고 성능 저하 여지까지 있는 코드가 작성되는 것을 방지할 수 있는 것입니다.
-
-이러한 캐시 무효화를 내재화시키는 것의 문제점은 캐시 무효화가 진행되는 시점을 정확하게 특정할 수 없다는 것입니다.
-이전 방식에서는 user status의 변화 시점, 즉 캐시 무효화 시점이 곧 페이지 이동 시점이기 때문에, 페이지 이동이 어느 시점에 이루어지는지 알 수 없어 로딩 처리 등을 할 수 없기 때문에 이 단점이 치명적입니다.
-하지만 새로운 방식에서는 user status의 변화와 페이지 이동 로직이 분리되었기 때문에 이러한 단점은 문제가 되지 않습니다.
+1. **캐시 무효화 누락 방지**: 각 컴포넌트에서 수동으로 호출할 필요 없음
+2. **불필요한 await 제거**: refetch가 일어나지 않으므로 기다릴 필요 없음
+3. **명확한 책임 분리**: mutation은 캐시 무효화까지만, 데이터 fetch는 loader에서 담당
 
 ```typescript
 // Mutation 커스텀 훅에 invalidate 내재화
