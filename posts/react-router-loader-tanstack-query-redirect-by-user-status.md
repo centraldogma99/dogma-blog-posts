@@ -402,6 +402,7 @@ function ErrorElement() {
 
 #### 로딩 처리: fallbackElement
 [문서](https://reactrouter.com/6.30.1/routers/router-provider#fallbackelement)
+
 다음 라우트의 loader가 실행되는 동안 기본적으로는 현재 화면에 머무르게 됩니다.(그 동안 위에서 언급한 `useNavigation` 훅을 통해 적절한 로딩 처리가 필요하겠죠.)
 하지만 서비스에 최초 진입할 때는 '현재 화면'이 없으므로, 이때 보여줄 화면을 정의해야 합니다. 이를 위해 `RouterProvider`의 prop으로 넘기는 `fallbackElement`를 사용합니다.
 
