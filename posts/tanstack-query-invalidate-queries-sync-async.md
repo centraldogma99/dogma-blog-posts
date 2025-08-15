@@ -2,7 +2,7 @@
 title: invalidateQueries에 await을 쓰지 마세요
 subtitle: invalidateQueries의 동기적 stale 표시와 비동기 refetch 동작을 이해하고, await을 올바르게 사용하는 방법
 date: 2025-08-15
-draft: true
+draft: false
 tag:
   - tanstack-query
   - react-query
