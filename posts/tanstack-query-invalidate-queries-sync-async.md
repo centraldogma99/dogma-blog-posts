@@ -2,7 +2,7 @@
 title: invalidateQueries에 await을 쓰지 마세요
 subtitle: invalidateQueries의 동기적 stale 표시와 비동기 refetch 동작을 이해하고, await을 올바르게 사용하는 방법
 date: 2025-08-15
-draft: true
+draft: false
 tag:
   - tanstack-query
   - react-query
@@ -212,6 +212,6 @@ function useUpdateProfile() {
 
 최종 권장사항:
 - await 없이 `invalidateQueries` 사용을 추천
-  1. await을 붙일 경우 불필요하게 refetch를 기다리게 되거나, refetch가 일어나지 않는데 일어난다는 오해를 불러일으킬 수 있음
+  - await을 붙일 경우 불필요하게 refetch를 기다리게 되거나, refetch가 일어나지 않는데 일어난다는 오해를 불러일으킬 수 있음
 - 페이지 이동 시, 다음 페이지에서 최신 데이터가 필요하다면 이동 전에 `prefetchQuery`로 명시적으로 가져오기
 - 낙관적 업데이트(Optimistic update)를 활용하면 await 필요성을 더 줄일 수 있음
