@@ -240,6 +240,8 @@ const Page = () => {
 
 ### 4. 캐시 무효화 전략 개선
 
+> [invalidateQueries에 await을 쓰지 마세요](https://junyeong.my/posts/tanstack-query-invalidate-queries-sync-async)에 좀더 자세히 설명되어 있으니, 이 섹션이 잘 이해되지 않는다면 도움이 될 수 있습니다.
+
 loader 방식에서는 사용자 상태를 구독하지 않기 때문에 `invalidateQueries()`를 호출해도 refetch가 일어나지 않습니다. 이는 TanStack Query의 동작 원리 때문입니다:
 - 활성 구독자가 있을 때만 refetch 수행
 - 구독자가 없으면 캐시만 stale로 표시
