@@ -4,6 +4,7 @@ date: "2025-08-15"
 tag:
   - tanstack-query
   - react-query
+description: "invalidateQueries 호출 시 관성적으로 붙이던 await은 사실 붙이지 않는 것이 더 좋습니다."
 slug: "tanstack-query-invalidate-queries-sync-async"
 draft: false
 ---
@@ -85,7 +86,7 @@ queryClient.invalidateQueries(queryOptions.getTodos)
 
 이미 stale로 표시되었기 때문에, 다음번에 이 데이터를 사용하는 컴포넌트가 마운트되었을 때 자동으로 새로운 데이터를 가져옵니다.
 
-### 오해 2: "await을 붙이면 항상 서버 요청을 기다린다"
+### 오해 2: "await을 붙이면 항상 refetch 요청을 기다린다"
 
 ```tsx
 // 아무도 이 데이터를 구독하고 있지 않다면?
@@ -95,7 +96,7 @@ await queryClient.invalidateQueries({ queryKey: ['unused-query'] })
 
 useQuery 등으로 해당 데이터를 구독하는 컴포넌트가 없다면, refetch 자체가 일어나지 않습니다. await을 붙여도 기다릴 게 없어서 바로 다음 줄로 넘어갑니다.
 
-### 오해 3: "mutation 후에는 항상 await을 붙여야 한다"
+### 오해 3: "mutation 후의 invalidation에는 항상 await을 붙여야 한다"
 
 ```tsx
 const { mutate } = useMutation({
@@ -108,7 +109,7 @@ const { mutate } = useMutation({
 })
 ```
 
-**대부분의 경우 await이 필요 없습니다.** useQuery를 사용하는 컴포넌트들이 알아서 새 데이터를 가져와서 화면을 업데이트하기 때문입니다.
+**대부분의 경우 await이 필요 없습니다.** useQuery를 사용하여 `getTodo` 쿼리를 구독하는 컴포넌트가 있다면, 그것들이 알아서 새 데이터를 가져와서 화면을 업데이트하기 때문입니다.
 
 하지만 refetch 완료를 기다려야 할 때가 있습니다. 예를 들어 프로필 업데이트 후 대시보드로 이동하는 상황을 보겠습니다:
 
@@ -138,7 +139,7 @@ function Dashboard() {
   // 대시보드에서 user 데이터를 사용
   const { data: user } = useQuery(queryOptions.getProfile)
   
-  // 문제: 아직 refetch가 진행 중이라 stale 데이터가 보일 수 있음
+  // 문제: 아직 refetch가 진행 중이라 이전 데이터가 보일 수 있음
   return <div>Welcome, {user.name}!</div>
 }
 ```
@@ -159,10 +160,19 @@ function useUpdateProfile() {
     mutationFn: updateProfile,
     onSuccess: async () => {
       await queryClient.invalidateQueries(queryOptions.getProfile)
-      navigate('/dashboard')  // refetch 완료까지 대기
+      onSuccess()  // refetch 완료까지 대기
     }
   })
 }
+
+// 커스텀 훅 사용
+const { mutate } = useUpdateProfile({
+  onSuccess: () => {
+    // refetch를 기다리지 않는 선택지가 없음
+    navigate('/dashboard')
+  }
+})
+
 ```
 
 `useUpdateProfile` 커스텀 훅은, 기다리고 싶지 않을 때도 무조건 기다려야 하는 **유연하지 못한 구조**가 됩니다.
@@ -192,14 +202,21 @@ function useUpdateProfile() {
     onSuccess: async () => {
       // 1. 캐시만 무효화 (await 없음) - "기존 데이터는 오래됐어"
       queryClient.invalidateQueries(queryOptions.getProfile)
-      // 2. 최신 데이터를 명시적으로 가져오기 - "새 데이터가 필요해"
-      await queryClient.prefetchQuery(queryOptions.getProfile)
-      // 3. 캐시가 최신 데이터로 채워져 있으므로 안전하게 페이지 이동
-      // Suspense fallback이나 화면 깜빡임 없음
-      navigate('/dashboard')
+      onSuccess()
     }
   })
 }
+
+// 커스텀 훅 사용
+const { mutate } = useUpdateProfile({
+  onSuccess: () => { 
+    // 2. 최신 데이터를 명시적으로 가져오기 - "새 데이터가 필요해"
+    await queryClient.prefetchQuery(queryOptions.getProfile)
+    // 3. 캐시가 최신 데이터로 채워져 있으므로 안전하게 페이지 이동
+    // Suspense fallback이나 화면 깜빡임 없음
+    navigate('/dashboard')
+  }
+})
 ```
 
 ## 정리
