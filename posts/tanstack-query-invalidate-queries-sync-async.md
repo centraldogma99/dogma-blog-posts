@@ -4,7 +4,6 @@ date: "2025-08-15"
 tag:
   - tanstack-query
   - react-query
-description: "invalidateQueries 호출 시 관성적으로 붙이던 await은 사실 붙이지 않는 것이 더 좋습니다."
 slug: "tanstack-query-invalidate-queries-sync-async"
 draft: false
 ---
@@ -109,7 +108,7 @@ const { mutate } = useMutation({
 })
 ```
 
-**대부분의 경우 await이 필요 없습니다.** useQuery를 사용하여 `getTodo` 쿼리를 구독하는 컴포넌트가 있다면, 그것들이 알아서 새 데이터를 가져와서 화면을 업데이트하기 때문입니다.
+정반대입니다. **대부분의 경우 await이 필요 없습니다.** 위 예시에서, useQuery를 사용하여 `getTodo` 쿼리를 구독하는 컴포넌트가 있다면, 그것들이 알아서 새 데이터를 가져와서 화면을 업데이트하기 때문입니다.
 
 하지만 refetch 완료를 기다려야 할 때가 있습니다. 예를 들어 프로필 업데이트 후 대시보드로 이동하는 상황을 보겠습니다:
 
@@ -160,7 +159,7 @@ function useUpdateProfile() {
     mutationFn: updateProfile,
     onSuccess: async () => {
       await queryClient.invalidateQueries(queryOptions.getProfile)
-      onSuccess()  // refetch 완료까지 대기
+      onSuccess()  // refetch 완료까지 대기한 후 실행됩니다
     }
   })
 }
@@ -230,5 +229,6 @@ const { mutate } = useUpdateProfile({
 최종 권장사항:
 - await 없이 `invalidateQueries` 사용을 추천
   - await을 붙일 경우 불필요하게 refetch를 기다리게 되거나, refetch가 일어나지 않는데 일어난다는 오해를 불러일으킬 수 있음
+  - mutation 커스텀 훅 내부인 경우 await을 붙이면 refetch를 기다릴 것인지 여부를 커스텀 훅 사용하는 쪽에서 유연하게 선택할 수 없음
 - 페이지 이동 시, 다음 페이지에서 최신 데이터가 필요하다면 이동 전에 `prefetchQuery`로 명시적으로 가져오기
-- 낙관적 업데이트(Optimistic update)를 활용하면 await 필요성을 더 줄일 수 있음
+- [낙관적 업데이트(Optimistic update)](https://tanstack.com/query/latest/docs/framework/react/guides/optimistic-updates#via-the-cache)를 활용하면 await 필요성을 더 줄일 수 있음
