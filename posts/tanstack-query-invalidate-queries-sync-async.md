@@ -4,8 +4,7 @@ date: "2025-08-15"
 tag:
   - tanstack-query
   - react-query
-slug: "tanstack-query-invalidate-queries-sync-async"
-draft: false
+draft: true
 ---
 
 ## TL;DR
