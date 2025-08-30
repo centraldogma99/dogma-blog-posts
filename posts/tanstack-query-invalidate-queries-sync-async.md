@@ -13,7 +13,7 @@ draft: false
 - `invalidateQueries`는 **await 없이 호출해도 캐시를 즉시 stale로 표시**합니다
 - `await`은 캐시 무효화가 아닌 **refetch 완료를 기다리는 것**입니다
 - 구독자가 없으면 refetch 자체가 일어나지 않아 `await`이 무의미합니다
-- **대부분의 경우 await은 불필요**하며, 정말 필요하다면 **`prefetchQuery`가 더 명확한 대안**입니다
+- **대부분의 경우 await은 불필요**합니다
 
 ## 들어가며
 
@@ -76,6 +76,8 @@ await queryClient.invalidateQueries(queryOptions.getTodos)
 
 ### 오해 2: "await을 붙이면 항상 refetch 요청을 기다린다"
 
+아닙니다! await 여부와 관계없이, refetch는 일어날 수도 일어나지 않을 수도 있습니다. refetch가 일어나는 경우에만 await이 refetch 요청을 기다립니다.
+
 ```tsx
 // 아무도 이 데이터를 구독하고 있지 않다면?
 await queryClient.invalidateQueries({ queryKey: ['unused-query'] })
@@ -103,7 +105,7 @@ const { mutate } = useMutation({
 
 정반대입니다. **대부분의 경우 await이 필요 없습니다.** 위 예시에서, useQuery를 사용하여 `getTodo` 쿼리를 구독하는 컴포넌트가 있다면, 그것들이 알아서 새 데이터를 가져와서 화면을 업데이트하기 때문입니다.
 
-하지만 refetch 완료를 기다려야 할 때가 있습니다. 이런 use case가 await을 꼭 붙여야 한다는 오해에 일조한 것 같습니다.
+하지만 refetch 완료를 기다려야 할 때가 있습니다. (이런 use case가 await을 꼭 붙여야 한다는 오해에 일조한 것 같습니다.)
 
 예를 들어 프로필 업데이트 후 대시보드로 이동하는 상황을 보겠습니다: (await을 안 붙인 경우)
 
@@ -141,9 +143,20 @@ function Dashboard() {
 이런 문제들이 발생합니다:
 - 대시보드로 이동했는데 아직 이전 프로필 정보가 표시됨
 - 잠시 후 refetch가 완료되면 갑자기 새 프로필로 변경됨
-- Suspense 사용 시 fallback으로 빠질 수도 있음
 
-그렇다고 await을 붙이면?
+이러한 문제를 해결하기 위해, 다음 페이지로 넘어가기 전에 새로운 데이터를 받아와야 할 것입니다. 이를 위해 `invalidateQueries` 앞에 `await`을 붙이곤 합니다.
+
+이는 여러 문제가 있습니다.
+
+#### 첫 번째 문제
+
+'오해 2' 에서 언급했듯, refetch 자체가 일어나지 않을 가능성이 있기 때문에 `await`을 붙여도 아무 효과가 없을 가능성이 있습니다.
+
+#### 두 번째 문제 (커스텀 훅 사용할 때 한정)
+
+refetch가 일어나더라도 문제입니다.
+
+mutation을 호출한 컴포넌트에서 어떤 식으로든 `getProfile` 쿼리를 구독하고 있었던 경우, refetch가 일어날 것이므로 원하는 대로 동작하긴 할 것입니다.
 
 ```tsx
 function useUpdateProfile() {
@@ -163,21 +176,23 @@ function useUpdateProfile() {
 const { mutate } = useUpdateProfile({
   onSuccess: () => {
     // refetch를 기다리지 않는 선택지가 없음
-    navigate('/dashboard')
+    navigate('/items')
   }
 })
 
 ```
 
-`useUpdateProfile` 커스텀 훅은, 기다리고 싶지 않을 때도 무조건 기다려야 하는 **유연하지 못한 구조**가 됩니다.
+하지만 `useUpdateProfile` 커스텀 훅은, 기다리고 싶지 않을 때도 무조건 기다려야 하는 **유연하지 못한 구조**가 됩니다.
 
-이러한 상황에서는 `prefetchQuery`를 사용하는 것이 더 명확한 대안입니다.
+만약 onSuccess 콜백에 '/dashboard'(내 정보 대시보드)로 이동하는 대신 '/items'(상품 페이지)와 같은, `getProfile` 쿼리를 호출하지 않는 페이지로 이동하는 경우에는 쓰이지도 않을 데이터를 가져오는 데 시간을 허비함으로써, 다음 페이지가 유저에게 더 늦게 보이게 될 것입니다.
+
+이러한 상황에서는 커스텀 훅 내부의 `invalidateQueries`에 `await`을 붙이는 대신, 커스텀 훅을 사용하는 곳에서  `prefetchQuery`를 사용하는 것이 더 명확한 대안입니다.
 
 **왜 prefetchQuery가 더 나은가?**
 
 - `invalidateQueries` + `await`의 문제점: 
-  - 의도가 불명확합니다 ("캐시를 무효화하고 싶은 건지, 새 데이터를 기다리고 싶은 건지?")
-  - 구독자 유무에 의존적입니다 (구독자가 없으면 await이 무의미)
+  - 커스텀 훅을 사용하는 곳의 구독자 유무에 의존적입니다 (구독자가 없으면 await이 무의미)
+  - 의도가 불명확합니다("캐시를 무효화하고 싶은 건지, 새 데이터를 기다리고 싶은 건지?". 개인적으로, 때때로 개발자를 헷갈리게 하는 API라고 생각합니다).
   - 코드를 읽는 사람이 "왜 await을 붙였지?"라고 고민하게 만듭니다
 
 - `prefetchQuery`의 장점:
