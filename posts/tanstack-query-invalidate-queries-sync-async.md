@@ -4,6 +4,8 @@ date: "2025-08-15"
 tag:
   - tanstack-query
   - react-query
+description: "쓰지 마세요!"
+slug: "tanstack-query-invalidate-queries-sync-async"
 draft: true
 ---
 
