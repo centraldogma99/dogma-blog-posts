@@ -1,8 +1,10 @@
 ---
-title: "TODO 매니저 에이전트 개획"
-date: "2026-01-30"
+title: TODO 매니저 에이전트 개획
+date: 2026-01-30
 draft: true
-tag: ['asdf', 'qwer']
+tag:
+  - asdf
+  - qwer
 ---
 
 원래 작업 방식은...
