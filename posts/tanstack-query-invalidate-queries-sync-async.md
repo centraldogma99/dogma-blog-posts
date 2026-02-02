@@ -5,8 +5,7 @@ tag:
   - tanstack-query
   - react-query
 description: "쓰지 마세요!"
-slug: "tanstack-query-invalidate-queries-sync-async"
-draft: true
+draft: false
 ---
 
 ## TL;DR
