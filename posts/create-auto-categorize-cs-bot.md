@@ -1,6 +1,6 @@
 ---
 title: 'Gemini로 똑똑한 CS 분류 봇 만들기 (feat. 자동 프롬프트 개선과 오버피팅의 함정)'
-subtitle: 'Gemini로 CS 분류 봇을 만들며 얻은 lesson learned 공유.'
+description: 'Gemini로 CS 분류 봇을 만들며 얻은 lesson learned 공유.'
 date: 2025-08-01
 draft: false
 tag:
