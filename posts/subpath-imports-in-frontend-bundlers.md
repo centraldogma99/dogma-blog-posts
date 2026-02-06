@@ -1,6 +1,6 @@
 ---
 title: 프론트엔드 프로젝트에서 Subpath Import 활용하기
-subtitle: TypeScript alias 대신 Node.js의 subpath import로 모듈 해석 통합하기
+description: TypeScript alias 대신 Node.js의 subpath import로 모듈 해석 통합하기
 date: 2025-08-08
 draft: false
 tag:
