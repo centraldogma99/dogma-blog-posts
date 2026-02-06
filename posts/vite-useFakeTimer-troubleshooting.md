@@ -1,6 +1,6 @@
 ---
 title: Vitest useFakeTimer와 Testing Library 호환성 문제 해결하기
-subtitle: waitFor timeout, findBy 쿼리 오류, user action 동작 문제의 원인과 해결법
+description: waitFor timeout, findBy 쿼리 오류, user action 동작 문제의 원인과 해결법
 date: 2024-10-14
 draft: false
 tag:
