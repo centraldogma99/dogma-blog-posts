@@ -1,6 +1,6 @@
 ---
 title: Subpath Import로 테스트 모킹 혁신하기
-subtitle: vi.mock()과 resolve.alias를 넘어선 Node.js 표준 기반 모킹 전략
+description: vi.mock()과 resolve.alias를 넘어선 Node.js 표준 기반 모킹 전략
 date: 2025-08-09
 draft: true
 tag:
