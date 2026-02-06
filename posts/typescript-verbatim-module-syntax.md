@@ -1,6 +1,6 @@
 ---
 title: Typescript의 verbatimModuleSyntax - import를 있는 그대로 유지하는 이유
-subtitle: 현대적인 빌드 도구 체인에서 Typescript가 코드를 "똑똑하게" 변형하지 않는 것이 왜 더 나은 선택인지 알아봅니다.
+description: 현대적인 빌드 도구 체인에서 Typescript가 코드를 "똑똑하게" 변형하지 않는 것이 왜 더 나은 선택인지 알아봅니다.
 date: 2025-08-08
 draft: false
 tag:
