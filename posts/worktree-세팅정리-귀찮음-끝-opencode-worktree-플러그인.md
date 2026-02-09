@@ -24,6 +24,7 @@ draft: true
 추가로,
 - worktree 경로/이름을 매번 직접 고민해야 하고
 - 작업이 끝나면 worktree 정리(remove/prune 등)도 직접 해야 해서, 병렬 작업 시작/종료가 번거로움
+
 ### 해결: opencode-worktree 플러그인 사용
 
 [worktree 플러그인](https://github.com/kdcokenny/opencode-worktree)을 쓰면, **프롬프트만으로 worktree 생성부터 환경 구성, 터미널 오픈까지 자동화**된다.
@@ -35,7 +36,16 @@ draft: true
 - 생성된 워크트리 디렉토리를 기준으로 **새 터미널 자동 오픈**
     - tmux를 쓰는 경우 tmux 탭으로 열어줌
     - 그 외의 경우 새 터미널 탭으로
+ 
+##### 예시 영상
+
+
+https://github.com/user-attachments/assets/666fc7fc-0a39-4953-aab7-f07bb1b7537e
+
+
 
 #### 2) 정리
 작업이 끝나면 “워크트리 정리해줘” 같은 프롬프트만으로:
 - 해당 워크트리 삭제(delete)
+- 필요한 경우 변경사항 커밋
+- preDelete 훅 호출 (docker 사용하는 경우 `docker compose down` 등)
