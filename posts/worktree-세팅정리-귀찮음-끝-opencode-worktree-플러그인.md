@@ -32,7 +32,7 @@ draft: true
 
 “이 작업을 할 건데 워크트리 만들어서 작업해줘” 같은 프롬프트만으로:
 - 워크트리 네이밍 자동 생성
-- 워크트리 생성 + 개발환경에 필요한 파일 구성 (symlink)
+- 워크트리 생성 + 개발환경에 필요한 파일 구성 (symlink) + postCreate 훅 호출 (`pnpm install` 등)
 - 생성된 워크트리 디렉토리를 기준으로 **새 터미널 자동 오픈**
     - tmux를 쓰는 경우 tmux 탭으로 열어줌
     - 그 외의 경우 새 터미널 탭으로
@@ -49,3 +49,11 @@ https://github.com/user-attachments/assets/666fc7fc-0a39-4953-aab7-f07bb1b7537e
 - 해당 워크트리 삭제(delete)
 - 필요한 경우 변경사항 커밋
 - preDelete 훅 호출 (docker 사용하는 경우 `docker compose down` 등)
+
+#### 3) 한계점
+이 플러그인은 create-worktree, delete-worktree 툴만을 제공함. 이 툴이 호출되는지 마는지는 순수하게 LLM의 추론에 의해 결정됨.
+따라서 '워크트리 만들어서 작업해줘' 라고 프롬프트를 날려도, 이 플러그인이 활용된다는 보장은 없는 것.
+필요하다면 'create-worktree 툴을 사용해서 ~~해줘' 라는 역할을 수행하는 slash command를 만들어 두는 것도 도움이 될 것 같음.
+
+또 다른 점으로는, 이건 opencode 전용이라 claude code에서는 쓸 수 없다는 점인데...
+코드를 보면 그렇게 복잡하지 않은 편이라, 포크 따서 직접 작업해보는 것도 할만해 보인다.
